@@ -29,8 +29,8 @@ class Sim():
     self.Planet = Planet  # object
     self.Moons = Moons  # list of objects
 
-    self.Nsteps = 100
-    self.Npoints = 100
+    self.Nsteps = 1000
+    self.Npoints = 150
     
     # determine Theta_start and Theta_stop
     sum_of_radii = 0
@@ -56,7 +56,7 @@ class Sim():
     for self.Theta in tqdm(self.angles):
       self.step()
 
-    print(self.intensities)
+    # print(self.intensities)
 
   def step(self):
     # updating the position of planet
@@ -89,20 +89,31 @@ class Sim():
       # CURRENTLY SUPPORTS ONLY 1 STAR!!
       x_coords = np.arange(self.Planet.x - self.Planet.radius, self.Planet.x + self.Planet.radius, (self.Planet.radius*2)/self.Npoints)
       y_coords = np.arange(self.Planet.y - self.Planet.radius, self.Planet.y + self.Planet.radius, (self.Planet.radius*2)/self.Npoints)
-      for x in x_coords:
-        for y in y_coords:
+
+      # make array lists where the x-coords and y-lists are substracted by the planet x- and y-values, to determine distance to planet center. also square them
+      x_min_planet_sqr = np.power(x_coords - self.Planet.x, 2)
+      y_min_planet_sqr = np.power(y_coords - self.Planet.y, 2)
+
+      # do the same for the star values
+      x_min_star_sqr = np.power(x_coords - self.Stars[0].x, 2)
+      y_min_star_sqr = np.power(y_coords - self.Stars[0].y, 2)
+
+      for i,x in enumerate(x_coords):
+        for j,y in enumerate(y_coords):
           # determine distance from testpoint to middle of the planet and leave it squared
-          sqr_distance_to_planet = math.pow(x-self.Planet.x,2) + math.pow(y-self.Planet.y,2)
+          sqr_distance_to_planet = x_min_planet_sqr[i] + y_min_planet_sqr[j]
           # determine if the point lies within the planet by comparing it against the radius of the planet squared
           if sqr_distance_to_planet <= self.Planet.radius_sqr2:
             # if code reaches here, point is on planet, so determine shade
             # CURRENTLY SUPPORTS ONLY 1 STAR!!
-            sqr_distance_to_star = math.pow(x-self.Stars[0].x,2) + math.pow(y-self.Stars[0].y,2)
+            sqr_distance_to_star = x_min_star_sqr[i] + y_min_star_sqr[j]
             # CURRENTLY SUPPORTS ONLY 1 STAR!!
             if sqr_distance_to_star <= self.Stars[0].radius_sqr2:
               # if code reaches here, point is on on star, so determine shade
               # print(overlapeffect)
-              overlapeffect += self.applyLimbDarkening()*self.surface_per_point
+              overlapeffect += self.applyLimbDarkening()
+
+
 
     # NOT YET RELEVANT -- FIX WHEN IMPLEMENTING MOONS
     # # check if there is overlap caused by the moons
@@ -120,7 +131,7 @@ class Sim():
     #           # if code reaches here, point is on on star
     #           overlapeffect += applyLimbDarkening()
     
-    return overlapeffect
+    return overlapeffect*self.surface_per_point
 
 
   def plot(self):
@@ -147,7 +158,7 @@ if __name__ == "__main__":
     x=0,
     y=0,
     # radius=6371, #km (10 times the earth)
-    radius=806340,
+    radius=63710,
     mass=0,
     orbit_radius = 150000000
   )
