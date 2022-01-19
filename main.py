@@ -13,15 +13,13 @@ import bodies
 
 # config
 config = {
-  'Inclination': math.pi/2,  # pi/2: full transit
-  'Number-of-steps': 100,  # number of iteration steps
-  'Number-of-points': 150,  # number of integration points per iteration step
+    'Inclination': math.pi/2 + 0.0016782 * math.pi,  # pi/2: full transit
+    'Number-of-steps': 100,  # number of iteration steps
+    'Number-of-points': 300,  # number of integration points per iteration step
 }
-
 
 # Constants
 G = 6.674e-11
-
 
 def main():
     # introduce simulation object and set start_values
@@ -31,7 +29,8 @@ def main():
     sim.addStar(
         radius = 696340,
         mass = 1.988e30,
-        temperature = 6000
+        temperature = 6000,
+        labda = 350
     )
 
     sim.addPlanet(
@@ -60,11 +59,11 @@ class Sim():
         self.moons_added = False  # will be set to true if moons present
 
 
-    def addStar(self, radius, mass, temperature):
-        self.Star = bodies.Star(radius, mass, temperature)
+    def addStar(self, radius, mass, temperature, labda):
+        self.Star = bodies.Star(radius, mass, temperature, labda)
 
     def addPlanet(self, a, e, radius, mass):
-        self.Planet = bodies.Planet(a, e, radius, mass)
+        self.Planet = bodies.Planet(a, e, radius, mass, self.theta)
 
     def addMoon(orbit_radius, radius):
         # check if moon list already exists, else make one
@@ -100,8 +99,7 @@ class Sim():
         self.surface_per_point =  math.pow(2 * self.Planet.radius, 2) / math.pow(self.Npoints, 2)
 
         # initialize start values for the bodies
-        self.Star.initialize(self.Planet, self.applyLimbDarkening)  # determine total intensity etc
-        print(self.angles[0])
+        self.Star.initialize(self.Planet)  # determine total intensity etc
         self.Planet.initialize(phi = self.angles[0])
 
         for self.phi in tqdm(self.angles):
@@ -112,8 +110,9 @@ class Sim():
         # update phi-value of planet
         self.Planet.phi = self.phi
 
-        # determine new x-value for this phi
+        # determine new positions for this phi
         self.Planet.updateX()
+        self.Planet.updateY()
 
         # overgebleven intensiteit: totale intensiteit - intensiteit achter overlap
         intensity_this_frame = self.Star.intensity - self.calcOverlapEffect()
@@ -152,7 +151,7 @@ class Sim():
                         sqr_distance_to_star = x_min_star_sqr[i] + y_min_star_sqr[j]
                         if sqr_distance_to_star <= self.Star.radius_sqr2:
                             # if code reaches here, point is on on star, so determine shade
-                            overlapeffect += self.applyLimbDarkening()
+                            overlapeffect += self.applyLimbDarkening(sqr_distance_to_star)
 
         return overlapeffect*self.surface_per_point
 
@@ -162,9 +161,102 @@ class Sim():
         plt.show()
 
 
-    def applyLimbDarkening(self):
-        return 1
+    # def applyLimbDarkening(self, sqr_distance_to_star):
+    #     # labda = 1000.67
+    #     inverse_labda = 1000/self.Star.labda
+    #     # labda_formula = 1000/labda
+    #     # delta_r = 0.001
 
+    #     min_xi_2 = -0.231961
+    #     min_xi_3 = -0.0772776
+
+    #     # list_L = np.zeros(int(1/delta_r))
+    #     # list_r = np.zeros(int(1/delta_r))
+
+    #     if 303 <= self.Star.labda <= 367:
+    #         b_0 = 0.3721 - 0.08550 * inverse_labda
+    #         b_2 = -0.3371 + 0.07246 * inverse_labda
+    #         b_3 = 0.4243 - 0.07246 * inverse_labda - 0.0003209 * math.pow(inverse_labda,5)
+    #     elif 372 <= self.Star.labda <= 405:
+    #         b_0 = -0.1327 + 0.10590 * inverse_labda
+    #         b_2 = 1.8342 - 0.75395 * inverse_labda
+    #         b_3 = -1.7650 + 0.75395 * inverse_labda - 0.0004729 * math.pow(inverse_labda,5)
+    #     elif 415 <= self.Star.labda <= 1100:
+    #         b_0 = 0.7421 - 0.26003 * inverse_labda
+    #         b_2 = 0.0644 - 0.04040 * inverse_labda 
+    #         b_3 = 0.0286 + 0.04040 * inverse_labda - 0.0005199 * math.pow(inverse_labda,5)
+
+    #     # for r in np.arange(0,1,step = delta_r):
+    #     #     mu = np.sqrt(1-math.pow(r,2))
+    #     #     L = b_0 + (1-b_0) * mu + b_2 * (mu*(np.log(2) - np.log(1+1/mu))/min_xi_2) + b_3 * (mu*(-np.log(2) + mu* np.log(1+1/mu))/min_xi_3)
+    #     #     list_L[int(r/delta_r)] = L
+    #     #     list_r[int(r/delta_r)] = r
+
+    #     # plt.plot(list_r, list_L)
+    #     # plt.xlabel('Relative radius')
+    #     # plt.ylabel('Relative intensity')
+
+    #     # props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    #     # textstr = '\n'.join((r'$\lambda=%.2f$' % (labda, ),))
+    #     # plt.text(0.85,0.95, textstr, bbox = props)
+    #     # plt.show()
+
+    #     mu = math.sqrt(1-sqr_distance_to_star/self.Star.radius_sqr2)
+
+    #     # L = b_0 + (1-b_0) * mu + b_2 * (mu*(math.log(2) - math.log(1+1/mu))/min_xi_2) + b_3 * (mu*(-math.log(2) + mu * math.log(1+1/mu))/min_xi_3)
+    #     L = b_0 + (1-b_0) * mu + b_2 * (mu*(math.log(2/(1+1/mu)))/min_xi_2) + b_3 * (mu*(-math.log(2) + mu * math.log(1+1/mu))/min_xi_3)
+
+    #     return L
+
+    def applyLimbDarkening(self, sqr_distance_to_star):
+        # labda = 1000.67
+        inverse_labda = 1000/self.Star.labda
+        # labda_formula = 1000/labda
+        # delta_r = 0.001
+
+        min_xi_2 = -0.231961
+        min_xi_3 = -0.0772776
+        min_xi_4 = -0.0429718
+
+        # list_L = np.zeros(int(1/delta_r))
+        # list_r = np.zeros(int(1/delta_r))
+
+        if 303 <= self.Star.labda <= 367:
+            c_0 = 0.3998 - 0.10256 * inverse_labda
+            c_2 = -0.0063 + 0.0006839 * math.pow(inverse_labda,5)
+            c_3 = -0.2291 - 0.0020539 * math.pow(inverse_labda,5)
+            c_4 = 0.3324 + 0.001083 * math.pow(inverse_labda,5)
+        elif 372 <= self.Star.labda <= 405:
+            c_0 = 0.2102 - 0.03570 * inverse_labda
+            c_2 = -0.3373 + 0.0043378 * math.pow(inverse_labda,5)
+            c_3 = 1.6731 - 0.0206681 * math.pow(inverse_labda,5)
+            c_4 = -1.3064 + 0.0163562 * math.pow(inverse_labda,5)
+        elif 415 <= self.Star.labda <= 1100:
+            c_0 = 0.7560 - 0.26754 * inverse_labda
+            c_2 = -0.0433 + 0.0010059 * math.pow(inverse_labda,5)
+            c_3 = 0.2496 - 0.0049131  * math.pow(inverse_labda,5)
+            c_4 = -0.1168 + 0.003494 * math.pow(inverse_labda,5)
+
+        # for r in np.arange(0,1,step = delta_r):
+        #     mu = np.sqrt(1-math.pow(r,2))
+        #     L = b_0 + (1-b_0) * mu + b_2 * (mu*(np.log(2) - np.log(1+1/mu))/min_xi_2) + b_3 * (mu*(-np.log(2) + mu* np.log(1+1/mu))/min_xi_3)
+        #     list_L[int(r/delta_r)] = L
+        #     list_r[int(r/delta_r)] = r
+
+        # plt.plot(list_r, list_L)
+        # plt.xlabel('Relative radius')
+        # plt.ylabel('Relative intensity')
+
+        # props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        # textstr = '\n'.join((r'$\lambda=%.2f$' % (labda, ),))
+        # plt.text(0.85,0.95, textstr, bbox = props)
+        # plt.show()
+
+        mu = math.sqrt(1-sqr_distance_to_star/self.Star.radius_sqr2)
+
+        L = c_0 + (1-c_0) * mu + c_2 * (mu*(math.log(2/(1+1/mu)))/min_xi_2) + c_3 * (mu*(-math.log(2) + mu * math.log(1+1/mu))/min_xi_3) + c_4 * (mu*(math.log(2) - 1 + mu - math.pow(mu,2)*(math.log(1+1/mu)))/min_xi_4)
+
+        return L
 
 
 if __name__ == "__main__":
