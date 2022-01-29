@@ -22,30 +22,37 @@ class Star():
         self.radius_sqr2 = math.pow(radius, 2)
         self.mass = mass
 
-    def initialize(self, planet, labda):
+    def initialize(self, planet, labdas):
         self.x = planet.a * planet.e
         self.y = 0  # for now
-        self.labda = labda
+        self.labdas = labdas
+        self.tot_intensities = []
 
-        # determine total intensity
-        inverse_labda = 1000/self.labda
+        for labda in self.labdas:
+            if not labda:
+                self.tot_intensities.append(math.pi * self.radius_sqr2)
+            else:
+                self.tot_intensities.append(self.calcLimbDarkening(labda))
+
+    def calcLimbDarkening(self, labda):
+        inverse_labda = 1000/labda
         dr = 0.001
         
         min_xi_2 = -0.231961
         min_xi_3 = -0.0772776
         min_xi_4 = -0.0429718
 
-        if 303 <= self.labda <= 367:
+        if 303 <= labda <= 367:
             c_0 = 0.3998 - 0.10256 * inverse_labda
             c_2 = -0.0063 + 0.0006839 * math.pow(inverse_labda,5)
             c_3 = -0.2291 - 0.0020539 * math.pow(inverse_labda,5)
             c_4 = 0.3324 + 0.001083 * math.pow(inverse_labda,5)
-        elif 372 <= self.labda <= 405:
+        elif 372 <= labda <= 405:
             c_0 = 0.2102 - 0.03570 * inverse_labda
             c_2 = -0.3373 + 0.0043378 * math.pow(inverse_labda,5)
             c_3 = 1.6731 - 0.0206681 * math.pow(inverse_labda,5)
             c_4 = -1.3064 + 0.0163562 * math.pow(inverse_labda,5)
-        elif 415 <= self.labda <= 1100:
+        elif 415 <= labda <= 1100:
             c_0 = 0.7560 - 0.26754 * inverse_labda
             c_2 = -0.0433 + 0.0010059 * math.pow(inverse_labda,5)
             c_3 = 0.2496 - 0.0049131  * math.pow(inverse_labda,5)
@@ -54,11 +61,13 @@ class Star():
             logger.critical('The lambda value does not exist!')
             raise Exception('The lambda value does not exist!')
 
-        self.intensity = 0
+        intensity = 0
         for r in np.arange(0,1,step = dr):
             mu = np.sqrt(1-math.pow(r,2))   
             L = c_0 + (1-c_0) * mu + c_2 * (mu*(math.log(2/(1+1/mu)))/min_xi_2) + c_3 * (mu*(-math.log(2) + mu * math.log(1+1/mu))/min_xi_3) + c_4 * (mu*(math.log(2) - 1 + mu - math.pow(mu,2)*(math.log(1+1/mu)))/min_xi_4)
-            self.intensity += L * (math.pi * (((r*self.radius)+(dr*self.radius))**2 - (r*self.radius)**2))
+            intensity += L * (math.pi * (((r*self.radius)+(dr*self.radius))**2 - (r*self.radius)**2))
+
+        return intensity
 
 
 
