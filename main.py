@@ -29,8 +29,8 @@ import bodies
 config = {
     'lambdas': [None, 1100, 800, 500, 350],  # list of lambdas to use in the simulation
     'Inclination': math.pi/2 + math.pi * 0.00000149,# + 0.0016782 * math.pi,  # pi/2: full transit
-    'Number-of-steps': 125,  # number of iteration steps
-    'Number-of-points': 100,  # number of integration points per iteration step
+    'Number-of-steps': 25,  # number of iteration steps
+    'Number-of-points': 25,  # number of integration points per iteration step
 }
 
 # Constants
@@ -352,7 +352,10 @@ class Sim():
                 intensities_per_labda[i] /= max(intensities_per_labda[i])
 
         for i, labda in enumerate(self.labdas):
-            plt.plot(self.angles, intensities_per_labda[i], colours[i], label=f'$\lambda$={labda} nm')
+            if not labda:
+                plt.plot(self.angles, intensities_per_labda[i], colours[i], label=f'No limb darkening')
+            else:
+                plt.plot(self.angles, intensities_per_labda[i], colours[i], label=f'$\lambda$={labda} nm')
         plt.legend()
         plt.xlabel("Angle with perihelion [Rad]")
         plt.ylabel("Normalised intensity")
