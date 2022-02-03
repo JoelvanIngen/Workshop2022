@@ -28,9 +28,15 @@ import bodies
 # config
 config = {
     'lambdas': [None, 1100, 800, 500, 350],  # list of lambdas to use in the simulation
+<<<<<<< HEAD
     'Inclination': math.pi/2,# + ##math.pi * 0.00000149,# + 0.0016782 * math.pi,  # pi/2: full transit
     'Number-of-steps': 200,  # number of iteration steps
     'Number-of-points': 100,  # number of integration points per iteration step
+=======
+    'Inclination': math.pi/2 + math.pi * 0.00000149,# + 0.0016782 * math.pi,  # pi/2: full transit
+    'Number-of-steps': 25,  # number of iteration steps
+    'Number-of-points': 25,  # number of integration points per iteration step
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 }
 
 # Constants
@@ -46,6 +52,7 @@ def main():
         mass = 1.988e30,
     )
 
+<<<<<<< HEAD
     # sim.addStar(  # HD 209458
     #     radius = 1.2 * 696340000,
     #     mass = 1.148 * 1.988e30,
@@ -122,15 +129,45 @@ def main():
     #     orbit_radius = .3844e09,
     # )
 
+=======
+    sim.addPlanet(
+        a = 149597887500,
+        e = 0.016710219,
+        radius = 6371,
+        mass = 0
+    )
+
+    # sim.addMoon(
+    #     radius = 10000,
+    #     orbit_radius = 1000000,
+    #     phi=0
+    # )
+
+    # sim.addMoon(
+    #     radius = 6000,
+    #     orbit_radius = 1000000,
+    #     phi=math.pi
+    # )
+
+    sim.addMoon(
+        radius = 1736,
+        orbit_radius = .3844e06,
+    )
+    
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
     # run simulation
     sim.run()
 
     # plot results
+<<<<<<< HEAD
     sim.plotResults(
         Nerror_bars = 10,  # error bars evenly spead over the x-axis
         size_error_bars = 2.5e-5  # relative to size of dip
     )
+=======
+    sim.plotResults()
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
 class Sim():
     def __init__(self, config):
@@ -140,10 +177,15 @@ class Sim():
         self.Npoints = config['Number-of-points']
 
         self.moons_added = False  # will be set to true if moons present
+        
+        logger.debug('Simulation initialized')
 
         logger.debug('Simulation initialized')
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
     def addStar(self, radius, mass):
         self.Star = bodies.Star(radius, mass)
         logger.info(f'Star added with radius={radius} and mass={mass}')
@@ -160,8 +202,12 @@ class Sim():
 
         self.Moons.append(bodies.Moon(radius, orbit_radius, phi, inclination, theta))
         logger.info(f'Moon added with radius={radius}, orbit_radius={orbit_radius}, phi={phi}, inclination={inclination} and theta={theta}')
+<<<<<<< HEAD
 
+=======
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
+        
     def run(self):
         logger.info('Starting main run')
 
@@ -174,11 +220,20 @@ class Sim():
         sum_of_radii = 1.2 * self.Star.radius + self.Planet.radius
         if self.moons_added:
             sum_of_radii += max([moon.orbit_radius + moon.radius for moon in self.Moons])
+<<<<<<< HEAD
+=======
 
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
         # init star
         self.Star.initialize(self.Planet, self.labdas)
 
+<<<<<<< HEAD
+        # init star
+        self.Star.initialize(self.Planet, self.labdas)
+
+=======
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
         # determine where the planet should start its transit
         x_start = self.Star.x - sum_of_radii
@@ -211,7 +266,11 @@ class Sim():
             self.doStep()
 
         # normalise brightness list
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
 
     def doStep(self):
@@ -271,6 +330,7 @@ class Sim():
                         overlapeffect[labda_i] += 1
                     else:
                         overlapeffect[labda_i] += self.applyLimbDarkening(sqr_distance_to_star, labda)
+<<<<<<< HEAD
 
         return overlapeffect*self.surface_per_point
 
@@ -284,13 +344,32 @@ class Sim():
             y_relative_to_zero = self.Planet.y + y_relative_to_planet
 
 
+=======
+        
+        return overlapeffect*self.surface_per_point
+
+        # check if there is overlap caused by a moon
+    def calcOverlapEffectMoon(self):
+        overlapeffect = np.zeros(len(self.Star.labdas))
+        for moon_number,moon in enumerate(self.Moons):
+            x_relative_to_planet = moon.x
+            y_relative_to_planet = moon.y
+            x_relative_to_zero = self.Planet.x + x_relative_to_planet
+            y_relative_to_zero = self.Planet.y + y_relative_to_planet
+            
+
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
             # x_relative_to_star = self.Planet.x - moon.x
             # y_relative_to_star = self.Planet.y - moon.y
             dx_star = x_relative_to_zero - self.Star.x
             dy_star = y_relative_to_zero - self.Star.y
             # print(f'moon number {moon_number}', dx_star, dy_star)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
             # if no overlap with sun, skip
             if dx_star*dx_star + dy_star*dy_star > (self.Star.radius + moon.radius)**2: continue
 
@@ -334,7 +413,11 @@ class Sim():
                             # print((x-self.Planet.x-moon_test.x)**2 + (y-self.Planet.y-moon_test.y)**2, moon_test.radius_sqr2)
                             if (x-self.Planet.x-moon_test.x)**2 + (y-self.Planet.y-moon_test.y)**2 <= moon_test.radius_sqr2:
                                 no_moon_overlap = False
+<<<<<<< HEAD
 
+=======
+                            
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
                         # check if value changed, if not, we can calulate shade because point isn't being hit by other body
                     if no_moon_overlap:
                         for labda_i,labda in enumerate(self.Star.labdas):
@@ -344,13 +427,20 @@ class Sim():
                             else:
                                 overlapeffect[labda_i] += self.applyLimbDarkening(sqr_distance_to_star, labda)*moon.surface_per_point
                         # overlapeffect += self.applyLimbDarkening(sqr_distance_to_star)*moon.surface_per_point
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
         return overlapeffect
 
     def applyLimbDarkening(self, sqr_distance_to_star, labda):
         inverse_labda = 1000/labda
+<<<<<<< HEAD
         inverse_labda_5 = math.pow(inverse_labda,5)
+=======
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
 
         min_xi_2 = -0.231961
         min_xi_3 = -0.0772776
@@ -361,6 +451,7 @@ class Sim():
 
         if 303 <= labda <= 367:
             c_0 = 0.3998 - 0.10256 * inverse_labda
+<<<<<<< HEAD
             c_2 = -0.0063 + 0.0006839 * inverse_labda_5
             c_3 = -0.2291 - 0.0020539 * inverse_labda_5
             c_4 = 0.3324 + 0.001083 * inverse_labda_5
@@ -374,6 +465,21 @@ class Sim():
             c_2 = -0.0433 + 0.0010059 * inverse_labda_5
             c_3 = 0.2496 - 0.0049131  * inverse_labda_5
             c_4 = -0.1168 + 0.003494 * inverse_labda_5
+=======
+            c_2 = -0.0063 + 0.0006839 * math.pow(inverse_labda,5)
+            c_3 = -0.2291 - 0.0020539 * math.pow(inverse_labda,5)
+            c_4 = 0.3324 + 0.001083 * math.pow(inverse_labda,5)
+        elif 372 <= labda <= 405:
+            c_0 = 0.2102 - 0.03570 * inverse_labda
+            c_2 = -0.3373 + 0.0043378 * math.pow(inverse_labda,5)
+            c_3 = 1.6731 - 0.0206681 * math.pow(inverse_labda,5)
+            c_4 = -1.3064 + 0.0163562 * math.pow(inverse_labda,5)
+        elif 415 <= labda <= 1100:
+            c_0 = 0.7560 - 0.26754 * inverse_labda
+            c_2 = -0.0433 + 0.0010059 * math.pow(inverse_labda,5)
+            c_3 = 0.2496 - 0.0049131  * math.pow(inverse_labda,5)
+            c_4 = -0.1168 + 0.003494 * math.pow(inverse_labda,5)
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
         else:
             logger.critical('The lambda value does not exist!')
             raise Exception('The lambda value does not exist!')
@@ -384,6 +490,7 @@ class Sim():
 
         return L
 
+<<<<<<< HEAD
     def plotResults(self, Nerror_bars, size_error_bars):
         colours = ['k-', 'r--', 'y-.', 'g:', 'b-', 'y--', 'k-.']
 
@@ -394,10 +501,27 @@ class Sim():
 
         # convert  intensities per phi  to  intensities per labmbda
         intensities_per_labda = [[] for _ in range(self.Nsteps)]
+=======
+    def plotResults(self, norm=True):
+        # fig, axs = plt.subplots(len(self.labdas))
+        # fig.suptitle('waow')
+        # for i, labda in enumerate(self.labdas):
+        #     axs[i].plot(self.run_results[i][0], self.run_results[i][1])
+
+        # fig.show()
+        
+        # plt.plot(self.angles, self.intensities)
+        # plt.show()
+        
+        colours = ['k-', 'r--', 'y-.', 'g:', 'b-', 'y--', 'k-.'] 
+
+        intensities_per_labda = [[] for _ in range(len(self.labdas))]
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
         for i in range(len(self.labdas)):
             for j in range(len(self.intensity_per_phi)):
                 intensities_per_labda[i].append(self.intensity_per_phi[j][i])
 
+<<<<<<< HEAD
         # normalize each list
         for i in range(len(self.labdas)):
             intensities_per_labda[i] /= max(intensities_per_labda[i])
@@ -433,6 +557,19 @@ class Sim():
         plt.ticklabel_format(style='plain')
         x1,x2,y1,y2 = plt.axis()
         plt.axis((x1,x2,y1,1+1.1*size_error_bars))
+=======
+        # print(intensities_per_labda)
+        if norm:
+            for i in range(len(intensities_per_labda)):
+                intensities_per_labda[i] /= max(intensities_per_labda[i])
+
+        for i, labda in enumerate(self.labdas):
+            if not labda:
+                plt.plot(self.angles, intensities_per_labda[i], colours[i], label=f'No limb darkening')
+            else:
+                plt.plot(self.angles, intensities_per_labda[i], colours[i], label=f'$\lambda$={labda} nm')
+        plt.legend()
+>>>>>>> c7c5f99b9e2a84704e3e967a031d6b9562b0675b
         plt.xlabel("Angle with perihelion [Rad]")
         plt.ylabel("Normalised intensity")
         plt.show()
